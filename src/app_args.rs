@@ -1,3 +1,5 @@
+use clap::Parser;
+
 ///Flags we can pass
 #[derive(Parser, Debug)]
 struct AppArgs {
