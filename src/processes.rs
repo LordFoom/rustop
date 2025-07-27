@@ -1,5 +1,7 @@
 use anyhow::Result;
 
+use crate::model::ProcessInfo;
+
 ///Get processes and monitor them
 pub fn get_pids() -> Result<Vec<u32>> {
     let mut pids = Vec::new();
@@ -14,4 +16,10 @@ pub fn get_pids() -> Result<Vec<u32>> {
     }
 
     Ok(pids)
+}
+
+pub fn get_process_info() -> Result<Vec<ProcessInfo>> {
+    let mut process_info_vec = Vec::new();
+
+    Ok(process_info_vec)
 }
