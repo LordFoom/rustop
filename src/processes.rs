@@ -21,5 +21,12 @@ pub fn get_pids() -> Result<Vec<u32>> {
 pub fn get_process_info() -> Result<Vec<ProcessInfo>> {
     let mut process_info_vec = Vec::new();
 
+    for pid in get_pids()? {
+        let process_info = parse_process(pid)?;
+        process_info_vec.push(process_info);
+    }
+
     Ok(process_info_vec)
 }
+
+pub fn parse_process(pid: u32) -> Result<ProcessInfo> {}
