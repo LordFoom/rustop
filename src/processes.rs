@@ -29,4 +29,6 @@ pub fn get_process_info() -> Result<Vec<ProcessInfo>> {
     Ok(process_info_vec)
 }
 
-pub fn parse_process(pid: u32) -> Result<ProcessInfo> {}
+pub fn parse_process(pid: u32) -> Result<ProcessInfo> {
+    let stat = std::fs::read_to_string(format!("/proc/{}/stat", pid));
+}
