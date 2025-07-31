@@ -34,18 +34,13 @@ pub fn get_process_info() -> Result<Vec<ProcessInfo>> {
 pub fn parse_process(pid: u32) -> Result<ProcessInfo> {
     let stat = std::fs::read_to_string(format!("/proc/{}/stat", pid))?;
 
-    let stat_parts = stat.split_whitespace().collect();
+    let stat_parts: Vec<&str> = stat.split_whitespace().collect();
     if stat_parts.len() < 3 {
         return Err(anyhow!("Stat format is incorrect"));
     }
 
     let pid = stat_parts[0];
     let name = stat_parts[1].trim_matches(['(', ')']);
-    let state = match stat_parts[2].chars().next() {
-        Some('R') => ProcessState::Running,
-        Some('S') => ProcessState::Sleeping,
-        Some('Z') => ProcessState::Zombie,
-        Some('T') => ProcessState::Stopped,
-        Some(c) => ProcessState::Unknown(c),
-    };
+    let state_char = stat_parts[2].chars().next().unwrap_or_else(|| 'q');
+    let state = ProcessState::from(state_char);
 }
