@@ -43,4 +43,24 @@ pub fn parse_process(pid: u32) -> Result<ProcessInfo> {
     let name = stat_parts[1].trim_matches(['(', ')']);
     let state_char = stat_parts[2].chars().next().unwrap_or_else(|| 'q');
     let state = ProcessState::from(state_char);
+    let ppid = stat_parts[3];
+
+    let process_info = ProcessInfo{
+        pid: pid.parse::<u64>()?,
+        ppid: ppid.parse::<u64>()?,
+        name: todo!(),
+        command: todo!(),
+        cpu_percent: todo!(),
+        memory_kb: todo!(),
+        start_time: todo!(),
+        state,
+        user: todo!(),
+        priority: todo!(),
+        nice: todo!(),
+        num_threads: todo!(),
+        virtual_memory_kb: todo!(),
+        cpu_time_total: todo!(),
+        session_id: todo!(),
+        terminal: todo!(),
+    }
 }
