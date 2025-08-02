@@ -31,7 +31,7 @@ pub fn get_process_info() -> Result<Vec<ProcessInfo>> {
     Ok(process_info_vec)
 }
 
-pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
+pub fn parse_process(pid: u32) -> Result<ProcessInfo> {
     let stat = std::fs::read_to_string(format!("/proc/{}/stat", pid))?;
 
     let stat_parts: Vec<&str> = stat.split_whitespace().collect();
@@ -44,13 +44,12 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
     let state_char = stat_parts[2].chars().next().unwrap_or_else(|| 'q');
     let state = ProcessState::from(state_char);
     let ppid = stat_parts[3];
-    let command = get_command_line(pid)?;
 
     let process_info = ProcessInfo{
         pid: pid.parse::<u64>()?,
-        ppid: ppid.parse::<u64>()?,
-        name: name.to_owned(),
-        command,
+        ppid: ppid.parse::<u64>(),
+        name: todo!(),
+        command: todo!(),
         cpu_percent: todo!(),
         memory_kb: todo!(),
         start_time: todo!(),
@@ -64,10 +63,4 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         session_id: todo!(),
         terminal: todo!(),
     }
-}
-
-pub fn get_command_line(pid: &str) -> Result<String>{
-    let cmd = std::fs::read_to_string(format!("/proc/{pid}/command"))?;
-
-    Ok(cmd)
 }
