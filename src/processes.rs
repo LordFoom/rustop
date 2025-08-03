@@ -5,13 +5,13 @@ use crate::model::ProcessInfo;
 use crate::model::ProcessState;
 
 ///Get processes and monitor them
-pub fn get_pids() -> Result<Vec<u32>> {
+pub fn get_pids() -> Result<Vec<u64>> {
     let mut pids = Vec::new();
     //get the process ids by parsing the /proc/ directory
     for dir_entry in std::fs::read_dir("/proc")? {
         let entry = dir_entry?;
         if let Some(name) = entry.file_name().to_str() {
-            if let Ok(pid) = name.parse::<u32>() {
+            if let Ok(pid) = name.parse::<u64>() {
                 pids.push(pid);
             }
         }
@@ -45,13 +45,16 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
     let state = ProcessState::from(state_char);
     let ppid = stat_parts[3];
     let command = get_command_line(pid)?;
+    //still need to work out how to work this out
+    let cpu_percent = 0.0; 
+    let memory_kb = get_memory_usage(pid)?;
 
     let process_info = ProcessInfo{
         pid: pid.parse::<u64>()?,
         ppid: ppid.parse::<u64>()?,
         name: name.to_owned(),
         command,
-        cpu_percent: todo!(),
+        cpu_percent,
         memory_kb: todo!(),
         start_time: todo!(),
         state,
@@ -64,6 +67,18 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         session_id: todo!(),
         terminal: todo!(),
     }
+}
+
+fn get_memory_usage(pid: &str) -> Option<u64> {
+    let status_content = std::fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
+
+    for line in status_content.lines(){
+        //VmRSS: 13484 kB
+        if line.starts_with("VmRSS:") {
+            return line.split_whitespace().nth(1)?.parse().ok();
+        }
+    }
+    None
 }
 
 pub fn get_command_line(pid: &str) -> Result<String>{
