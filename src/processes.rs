@@ -1,3 +1,5 @@
+use std::os::unix::fs::MetadataExt;
+
 use anyhow::Result;
 use anyhow::anyhow;
 
@@ -47,7 +49,13 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
     let command = get_command_line(pid)?;
     //still need to work out how to work this out
     let cpu_percent = 0.0; 
-    let memory_kb = get_memory_usage(pid)?;
+    let memory_kb = match get_memory_usage(pid){
+        Some(mem) => mem,
+        None => 0,
+    };
+
+    let start_time = stat_parts[21].parse().unwrap_or(0);
+    let user = get_process_user(pid)
 
     let process_info = ProcessInfo{
         pid: pid.parse::<u64>()?,
@@ -55,8 +63,8 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         name: name.to_owned(),
         command,
         cpu_percent,
-        memory_kb: todo!(),
-        start_time: todo!(),
+        memory_kb,
+        start_time,
         state,
         user: todo!(),
         priority: todo!(),
@@ -69,9 +77,15 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
     }
 }
 
+fn get_process_user(pid: u64) -> Option<String> {
+    let stat_path = format!("/proc/{pid}/stat");
+    let meta_data = std::fs::metadata(stat_path).ok()?;
+    let uid = meta_data.uid();
+
+}
+
 fn get_memory_usage(pid: &str) -> Option<u64> {
     let status_content = std::fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
-
     for line in status_content.lines(){
         //VmRSS: 13484 kB
         if line.starts_with("VmRSS:") {
@@ -82,6 +96,7 @@ fn get_memory_usage(pid: &str) -> Option<u64> {
 }
 
 pub fn get_command_line(pid: &str) -> Result<String>{
+
     let cmd = std::fs::read_to_string(format!("/proc/{pid}/command"))?;
 
     Ok(cmd)
