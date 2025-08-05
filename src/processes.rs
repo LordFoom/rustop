@@ -1,10 +1,16 @@
 use std::os::unix::fs::MetadataExt;
+use std::sync::LazyLock;
+use std::sync::OnceLock;
 
 use anyhow::Result;
 use anyhow::anyhow;
+use users::cache;
 
 use crate::model::ProcessInfo;
 use crate::model::ProcessState;
+use users::{Users, UsersCache, get_user_by_uid};
+
+static USER_CACHE: LazyLock<UsersCache> = LazyLock::new(|| UsersCache::new());
 
 ///Get processes and monitor them
 pub fn get_pids() -> Result<Vec<u64>> {
@@ -41,24 +47,25 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         return Err(anyhow!("Stat format is incorrect"));
     }
 
-    let pid = stat_parts[0];
+    let file_pid = stat_parts[0];
+    let user_pid = file_pid.parse::<u64>().unwrap_or(0);
     let name = stat_parts[1].trim_matches(['(', ')']);
     let state_char = stat_parts[2].chars().next().unwrap_or_else(|| 'q');
     let state = ProcessState::from(state_char);
     let ppid = stat_parts[3];
-    let command = get_command_line(pid)?;
+    let command = get_command_line(file_pid)?;
     //still need to work out how to work this out
-    let cpu_percent = 0.0; 
-    let memory_kb = match get_memory_usage(pid){
+    let cpu_percent = 0.0;
+    let memory_kb = match get_memory_usage(file_pid) {
         Some(mem) => mem,
         None => 0,
     };
 
     let start_time = stat_parts[21].parse().unwrap_or(0);
-    let user = get_process_user(pid)
+    let user = get_process_user(user_pid).ok_or(anyhow!("Failed to get user"))?;
 
-    let process_info = ProcessInfo{
-        pid: pid.parse::<u64>()?,
+    let process_info = ProcessInfo {
+        pid: user_pid,
         ppid: ppid.parse::<u64>()?,
         name: name.to_owned(),
         command,
@@ -66,7 +73,7 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         memory_kb,
         start_time,
         state,
-        user: todo!(),
+        user,
         priority: todo!(),
         nice: todo!(),
         num_threads: todo!(),
@@ -74,19 +81,24 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         cpu_time_total: todo!(),
         session_id: todo!(),
         terminal: todo!(),
-    }
+    };
 }
 
 fn get_process_user(pid: u64) -> Option<String> {
+    use std::os::unix::fs::MetadataExt;
     let stat_path = format!("/proc/{pid}/stat");
     let meta_data = std::fs::metadata(stat_path).ok()?;
     let uid = meta_data.uid();
-
+    if let Some(user) = USER_CACHE.get_user_by_uid(uid) {
+        return Some(user.name().to_string_lossy().to_string());
+    } else {
+        return Some(format!("uid:{uid}"));
+    }
 }
 
 fn get_memory_usage(pid: &str) -> Option<u64> {
     let status_content = std::fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
-    for line in status_content.lines(){
+    for line in status_content.lines() {
         //VmRSS: 13484 kB
         if line.starts_with("VmRSS:") {
             return line.split_whitespace().nth(1)?.parse().ok();
@@ -95,8 +107,7 @@ fn get_memory_usage(pid: &str) -> Option<u64> {
     None
 }
 
-pub fn get_command_line(pid: &str) -> Result<String>{
-
+pub fn get_command_line(pid: &str) -> Result<String> {
     let cmd = std::fs::read_to_string(format!("/proc/{pid}/command"))?;
 
     Ok(cmd)
