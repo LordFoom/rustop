@@ -64,7 +64,8 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
     let start_time = stat_parts[21].parse().unwrap_or(0);
     let user = get_process_user(user_pid).ok_or(anyhow!("Failed to get user"))?;
     let priority = stat_parts[17].parse().unwrap_or(0);
-
+    let nice = stat_parts[17].parse().unwrap_or(0);
+    let num_threads = stat_parts[19].parse().unwrap_or(0);
     let process_info = ProcessInfo {
         pid: user_pid,
         ppid: ppid.parse::<u64>()?,
@@ -76,8 +77,8 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         state,
         user,
         priority,
-        nice: todo!(),
-        num_threads: todo!(),
+        nice,
+        num_threads,
         virtual_memory_kb: todo!(),
         cpu_time_total: todo!(),
         session_id: todo!(),
