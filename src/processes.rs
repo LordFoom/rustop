@@ -66,6 +66,13 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
     let priority = stat_parts[17].parse().unwrap_or(0);
     let nice = stat_parts[17].parse().unwrap_or(0);
     let num_threads = stat_parts[19].parse().unwrap_or(0);
+    let virtual_memory_kb = stat_parts[22].parse::<u64>().unwrap_or(0) / 1024;
+    let cpu_time_total = {
+        let utime = stat_parts[13].parse().unwrap_or(0);
+        let stime = stat_parts[14].parse().unwrap_or(0);
+        utime + stime
+    };
+
     let process_info = ProcessInfo {
         pid: user_pid,
         ppid: ppid.parse::<u64>()?,
@@ -79,8 +86,8 @@ pub fn parse_process(pid: u64) -> Result<ProcessInfo> {
         priority,
         nice,
         num_threads,
-        virtual_memory_kb: todo!(),
-        cpu_time_total: todo!(),
+        virtual_memory_kb,
+        cpu_time_total,
         session_id: todo!(),
         terminal: todo!(),
     };
