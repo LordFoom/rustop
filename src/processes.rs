@@ -1,14 +1,8 @@
-use std::os::unix::fs::MetadataExt;
-use std::sync::LazyLock;
-use std::sync::OnceLock;
-
-use anyhow::Result;
-use anyhow::anyhow;
-use users::cache;
-
 use crate::model::ProcessInfo;
 use crate::model::ProcessState;
-use users::{Users, UsersCache, get_user_by_uid};
+use anyhow::Result;
+use anyhow::anyhow;
+use users::{Users, UsersCache};
 
 // static USER_CACHE: LazyLock<UsersCache> = LazyLock::new(|| UsersCache::new());
 
@@ -74,7 +68,7 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
     };
 
     let session_id = stat_parts[5].parse().unwrap_or(0);
-    let terminal = get_terminal(stat_parts[6].parse().unwrap_or(0));
+    let terminal = get_terminal_name(stat_parts[6].parse().unwrap_or(0));
 
     let process_info = ProcessInfo {
         pid: user_pid,
@@ -92,15 +86,49 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
         virtual_memory_kb,
         cpu_time_total,
         session_id,
-        terminal: todo!(),
+        terminal,
     };
+    Ok(process_info)
 }
 
-fn get_terminal(terminal_id: i32) -> String {
-    if terminal_id == 0 {
-        "???".to_string()
-    } else {
-        "IMPLEMENT MEEEEEE".to_string()
+fn get_terminal_name(tty_nr: u64) -> String {
+    if tty_nr == 0 {
+        return "?".to_string();
+    }
+
+    // Decode device number: major (upper bits) + minor (lower bits)
+    let major = (tty_nr >> 8) & 0xfff;
+    let minor = tty_nr & 0xff;
+
+    match major {
+        4 => {
+            // TTY devices
+            if minor == 0 {
+                "tty0".to_string()
+            } else if minor <= 63 {
+                format!("tty{}", minor)
+            } else {
+                format!("tty{}", minor)
+            }
+        }
+        5 => {
+            // Console devices
+            match minor {
+                0 => "tty".to_string(),
+                1 => "console".to_string(),
+                2 => "ptmx".to_string(),
+                _ => format!("tty{}", minor),
+            }
+        }
+        136..=143 => {
+            // Unix98 PTY slaves (pts)
+            let pts_minor = ((major - 136) << 8) + minor;
+            format!("pts/{}", pts_minor)
+        }
+        _ => {
+            // Unknown or other device types
+            format!("{}:{}", major, minor)
+        }
     }
 }
 
@@ -109,6 +137,7 @@ fn get_process_user(pid: u64, user_cache: &mut UsersCache) -> Option<String> {
     let stat_path = format!("/proc/{pid}/stat");
     let meta_data = std::fs::metadata(stat_path).ok()?;
     let uid = meta_data.uid();
+    //this works out het boks
     if let Some(user) = user_cache.get_user_by_uid(uid) {
         return Some(user.name().to_string_lossy().to_string());
     } else {
