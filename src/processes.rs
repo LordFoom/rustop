@@ -35,45 +35,63 @@ pub fn get_process_info(user_cache: &mut UsersCache) -> Result<Vec<ProcessInfo>>
 
 pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInfo> {
     let stat = std::fs::read_to_string(format!("/proc/{}/stat", pid))?;
+    println!("Raw stat line: {stat}");
 
-    let stat_parts: Vec<&str> = stat.split_whitespace().collect();
-    if stat_parts.len() < 3 {
-        return Err(anyhow!("Stat format is incorrect"));
+    // Parse the stat file correctly - handle command name in parentheses
+    let start_paren = stat
+        .find('(')
+        .ok_or_else(|| anyhow!("No opening parenthesis in stat"))?;
+    let end_paren = stat
+        .rfind(')')
+        .ok_or_else(|| anyhow!("No closing parenthesis in stat"))?;
+
+    // Extract parts
+    let pid_str = stat[..start_paren].trim();
+    let name = &stat[start_paren + 1..end_paren];
+    let rest = &stat[end_paren + 2..]; // Skip ") "
+
+    // Split the remaining fields
+    let stat_parts: Vec<&str> = rest.split_whitespace().collect();
+
+    if stat_parts.len() < 23 {
+        return Err(anyhow!(
+            "Insufficient fields in stat file: got {}, need at least 23",
+            stat_parts.len()
+        ));
     }
 
-    let file_pid = stat_parts[0];
-    let user_pid = file_pid.parse::<u64>().unwrap_or(0);
-    let name = stat_parts[1].trim_matches(['(', ')']);
-    let state_char = stat_parts[2].chars().next().unwrap_or_else(|| 'q');
+    let file_pid = pid_str.parse::<u64>()?;
+    let state_char = stat_parts[0].chars().next().unwrap_or('?');
     let state = ProcessState::from(state_char);
-    let ppid = stat_parts[3];
-    let command = get_command_line(file_pid)?;
-    //still need to work out how to work this out
+    let ppid = stat_parts[1].parse::<u64>()?;
+    let session_id = stat_parts[3].parse::<u64>().unwrap_or(0);
+    let tty_nr = stat_parts[4].parse::<u64>().unwrap_or(0);
+    let utime = stat_parts[11].parse::<u64>().unwrap_or(0);
+    let stime = stat_parts[12].parse::<u64>().unwrap_or(0);
+    let priority = stat_parts[15].parse::<i64>().unwrap_or(0);
+    let nice = stat_parts[16].parse::<i64>().unwrap_or(0);
+    let num_threads = stat_parts[17].parse::<u64>().unwrap_or(0);
+    let start_time = stat_parts[19].parse::<u64>().unwrap_or(0);
+    let vsize = stat_parts[20].parse::<u64>().unwrap_or(0);
+    let rss = stat_parts[21].parse::<u64>().unwrap_or(0);
+
+    // Get additional info
+    let command = get_command_line(&pid.to_string()).unwrap_or_else(|_| name.to_string());
+    let memory_kb = get_memory_usage(&pid.to_string()).unwrap_or(0);
+    let user =
+        get_process_user(file_pid, user_cache).unwrap_or_else(|| format!("uid:{}", file_pid));
+    let terminal = get_terminal_name(tty_nr);
+
+    let cpu_time_total = utime + stime;
+    let virtual_memory_kb = vsize / 1024;
+
+    // Still need to calculate CPU percentage (requires sampling over time)
     let cpu_percent = 0.0;
-    let memory_kb = match get_memory_usage(file_pid) {
-        Some(mem) => mem,
-        None => 0,
-    };
 
-    let start_time = stat_parts[21].parse().unwrap_or(0);
-    let user = get_process_user(user_pid, user_cache).ok_or(anyhow!("Failed to get user"))?;
-    let priority = stat_parts[17].parse().unwrap_or(0);
-    let nice = stat_parts[17].parse().unwrap_or(0);
-    let num_threads = stat_parts[19].parse().unwrap_or(0);
-    let virtual_memory_kb = stat_parts[22].parse::<u64>().unwrap_or(0) / 1024;
-    let cpu_time_total = {
-        let utime = stat_parts[13].parse().unwrap_or(0);
-        let stime = stat_parts[14].parse().unwrap_or(0);
-        utime + stime
-    };
-
-    let session_id = stat_parts[5].parse().unwrap_or(0);
-    let terminal = get_terminal_name(stat_parts[6].parse().unwrap_or(0));
-
-    let process_info = ProcessInfo {
-        pid: user_pid,
-        ppid: ppid.parse::<u64>()?,
-        name: name.to_owned(),
+    Ok(ProcessInfo {
+        pid: file_pid,
+        ppid,
+        name: name.to_string(),
         command,
         cpu_percent,
         memory_kb,
@@ -87,8 +105,7 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
         cpu_time_total,
         session_id,
         terminal,
-    };
-    Ok(process_info)
+    })
 }
 
 fn get_terminal_name(tty_nr: u64) -> String {
@@ -157,7 +174,7 @@ fn get_memory_usage(pid: &str) -> Option<u64> {
 }
 
 pub fn get_command_line(pid: &str) -> Result<String> {
-    let cmd = std::fs::read_to_string(format!("/proc/{pid}/command"))?;
+    let cmd = std::fs::read_to_string(format!("/proc/{pid}/cmdline"))?;
 
     Ok(cmd)
 }

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use output::display_processes;
+use output::{clear_screen, display_processes};
 use processes::get_process_info;
 use users::UsersCache;
 
@@ -11,9 +11,18 @@ mod processes;
 fn main() -> Result<()> {
     //get all the processes
     let mut user_cache = UsersCache::new();
-    let processes = get_process_info(&mut user_cache)?;
-    display_processes(processes);
-    Ok(())
+    let mut refresh_count: u8 = 0;
+    loop {
+        let processes = get_process_info(&mut user_cache)?;
+        clear_screen();
+        display_processes(processes)?;
+        if refresh_count % 100 == 0 {
+            user_cache = UsersCache::new();
+            refresh_count = 0;
+        } else {
+            refresh_count += 1;
+        }
+    }
 }
 
 mod test {

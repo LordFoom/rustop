@@ -2,6 +2,9 @@ use anyhow::Result;
 
 use crate::model::ProcessInfo;
 
+pub fn clear_screen() {
+    print!("\x1B[2J\x1B[1;1H");
+}
 pub fn display_processes(processes: Vec<ProcessInfo>) -> Result<()> {
     println!(
         "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {} {:>8} {}",
