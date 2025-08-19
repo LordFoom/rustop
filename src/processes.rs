@@ -35,7 +35,7 @@ pub fn get_process_info(user_cache: &mut UsersCache) -> Result<Vec<ProcessInfo>>
 
 pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInfo> {
     let stat = std::fs::read_to_string(format!("/proc/{}/stat", pid))?;
-    println!("Raw stat line: {stat}");
+    // println!("Raw stat line: {stat}");
 
     // Parse the stat file correctly - handle command name in parentheses
     let start_paren = stat

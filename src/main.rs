@@ -1,5 +1,7 @@
+use std::{thread, time::Duration};
+
 use anyhow::Result;
-use output::{clear_screen, display_processes};
+use output::{clear_screen, display_processes, display_timestamp};
 use processes::get_process_info;
 use users::UsersCache;
 
@@ -15,6 +17,7 @@ fn main() -> Result<()> {
     loop {
         let processes = get_process_info(&mut user_cache)?;
         clear_screen();
+        display_timestamp();
         display_processes(processes)?;
         if refresh_count % 100 == 0 {
             user_cache = UsersCache::new();
@@ -22,6 +25,7 @@ fn main() -> Result<()> {
         } else {
             refresh_count += 1;
         }
+        thread::sleep(Duration::from_secs(2));
     }
 }
 
