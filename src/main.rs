@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use anyhow::Result;
-use output::{clear_screen, display_processes, display_timestamp};
+use output::{clear_screen, display_processes, display_processes_sorted, display_timestamp};
 use processes::get_process_info;
 use users::UsersCache;
 
@@ -18,7 +18,7 @@ fn main() -> Result<()> {
         let processes = get_process_info(&mut user_cache)?;
         clear_screen();
         display_timestamp();
-        display_processes(processes)?;
+        display_processes_sorted(&processes)?;
         if refresh_count % 100 == 0 {
             user_cache = UsersCache::new();
             refresh_count = 0;

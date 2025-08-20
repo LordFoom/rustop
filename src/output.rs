@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use anyhow::Result;
 
 use crate::model::ProcessInfo;
@@ -11,7 +13,7 @@ pub fn display_timestamp() {
     println!("rustop - {}", chrono::Local::now().format("%H::%M::%S"));
 }
 //Display the process info brought in
-pub fn display_processes(processes: Vec<ProcessInfo>) -> Result<()> {
+pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
     println!(
         "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {} {:>8} {}",
         "PID", "PPID", "USER", "NICE", "CPU%", "STATE", "MEM", "VMEM", "TTY", "THREADS", "COMMAND"
@@ -44,8 +46,17 @@ pub fn display_processes_sorted(processes: &mut [ProcessInfo], sort_by: &str) {
                 .partial_cmp(&a.cpu_percent)
                 .unwrap_or(std::cmp::Ordering::Equal)
         }),
+        "mem" => processes.sort_by(|a, b| {
+            b.memory_kb
+                .partial_cmp(&b.memory_kb)
+                .unwrap_or(Ordering::Equal)
+        }),
+        "pid" => processes.sort_by(|a, b| b.pid.partial_cmp(&a.pid).unwrap_or(Ordering::Equal)),
+        _ => {}
     }
+    display_processes(processes);
 }
+
 /// Helper function to format memory in human-readable format
 fn format_memory(kb: u64) -> String {
     if kb == 0 {
