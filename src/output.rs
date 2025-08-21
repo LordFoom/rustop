@@ -39,7 +39,7 @@ pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
     Ok(())
 }
 
-pub fn display_processes_sorted(processes: &mut [ProcessInfo], sort_by: &str) {
+pub fn display_processes_sorted(processes: &mut [ProcessInfo], sort_by: &str) -> Result<()> {
     match sort_by {
         "cpu" => processes.sort_by(|a, b| {
             b.cpu_percent
@@ -48,13 +48,13 @@ pub fn display_processes_sorted(processes: &mut [ProcessInfo], sort_by: &str) {
         }),
         "mem" => processes.sort_by(|a, b| {
             b.memory_kb
-                .partial_cmp(&b.memory_kb)
+                .partial_cmp(&a.memory_kb)
                 .unwrap_or(Ordering::Equal)
         }),
         "pid" => processes.sort_by(|a, b| b.pid.partial_cmp(&a.pid).unwrap_or(Ordering::Equal)),
         _ => {}
     }
-    display_processes(processes);
+    display_processes(processes)
 }
 
 /// Helper function to format memory in human-readable format
