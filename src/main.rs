@@ -1,10 +1,9 @@
 use std::{thread, time::Duration};
 
 use anyhow::Result;
-use crossterm::event::{self, Event};
+use crossterm::event::{self, Event, KeyCode};
 use output::{clear_screen, display_processes, display_processes_sorted, display_timestamp};
 use processes::get_process_info;
-use ratatui::crossterm::event::KeyCode;
 use users::UsersCache;
 
 mod app_args;
@@ -43,6 +42,7 @@ fn main() -> Result<()> {
         }
         thread::sleep(Duration::from_secs(2));
     }
+    Ok(())
 }
 
 mod test {
