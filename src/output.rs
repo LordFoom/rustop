@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use anyhow::Result;
 
-use crate::model::ProcessInfo;
+use crate::model::{ProcessInfo, SortBy};
 
 pub fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
@@ -39,20 +39,30 @@ pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
     Ok(())
 }
 
-pub fn display_processes_sorted(processes: &mut [ProcessInfo], sort_by: &str) -> Result<()> {
-    match sort_by {
-        "cpu" => processes.sort_by(|a, b| {
-            b.cpu_percent
-                .partial_cmp(&a.cpu_percent)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        }),
-        "mem" => processes.sort_by(|a, b| {
-            b.memory_kb
-                .partial_cmp(&a.memory_kb)
-                .unwrap_or(Ordering::Equal)
-        }),
-        "pid" => processes.sort_by(|a, b| b.pid.partial_cmp(&a.pid).unwrap_or(Ordering::Equal)),
-        _ => {}
+/// If optional SortBy is supplied, sort processes appropriately
+pub fn display_processes_sorted(
+    processes: &mut [ProcessInfo],
+    maybe_sort_by: &Option<SortBy>,
+) -> Result<()> {
+    if let Some(sort_by) = maybe_sort_by {
+        match sort_by {
+            SortBy::Cpu => processes.sort_by(|a, b| {
+                b.cpu_percent
+                    .partial_cmp(&a.cpu_percent)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            }),
+            SortBy::Memory => processes.sort_by(|a, b| {
+                b.memory_kb
+                    .partial_cmp(&a.memory_kb)
+                    .unwrap_or(Ordering::Equal)
+            }),
+            SortBy::Pid => {
+                processes.sort_by(|a, b| b.pid.partial_cmp(&a.pid).unwrap_or(Ordering::Equal))
+            }
+            SortBy::Name => {
+                processes.sort_by(|a, b| b.name.partial_cmp(&a.name).unwrap_or(Ordering::Equal));
+            }
+        }
     }
     display_processes(processes)
 }

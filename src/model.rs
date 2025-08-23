@@ -184,3 +184,11 @@ impl std::fmt::Display for ProcessInfo {
         )
     }
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SortBy {
+    Cpu,
+    Memory,
+    Pid,
+    Name,
+}
