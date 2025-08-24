@@ -100,3 +100,20 @@ fn truncate_string(s: &str, max_len: usize) -> String {
         format!("{}…", &s[..max_len.saturating_sub(1)])
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::processes::get_process_info;
+
+    use super::*;
+    use anyhow::Result;
+    use users::UsersCache;
+
+    #[test]
+    pub fn test_display_processes() -> Result<()> {
+        let mut user_cache = UsersCache::new();
+        let processes = get_process_info(&mut user_cache)?;
+        display_processes(&processes)?;
+        Ok(())
+    }
+}

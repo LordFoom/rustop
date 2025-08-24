@@ -1,9 +1,12 @@
-use std::{thread, time::Duration};
+use std::time::{Duration, Instant};
 
-use anyhow::Result;
-use crossterm::event::{self, Event, KeyCode};
+use anyhow::{Context, Result};
+use crossterm::{
+    event::{self, Event, KeyCode},
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
 use model::SortBy;
-use output::{clear_screen, display_processes, display_processes_sorted, display_timestamp};
+use output::{clear_screen, display_processes_sorted, display_timestamp};
 use processes::get_process_info;
 use users::UsersCache;
 
@@ -13,13 +16,20 @@ mod output;
 mod processes;
 
 fn main() -> Result<()> {
+    enable_raw_mode().context("Failed to enable raw mode")?;
+    show_processes()?;
+    disable_raw_mode().context("Failed to disable raw mode")
+}
+
+fn show_processes() -> Result<()> {
     //get all the processes
     let mut user_cache = UsersCache::new();
     let mut refresh_count: u8 = 0;
     //TODO turn this into an enum
     let mut maybe_sort_by = None;
+    let mut last_refresh = std::time::Instant::now();
     loop {
-        if event::poll(Duration::from_millis(100))? {
+        if event::poll(Duration::from_millis(50))? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => break,
@@ -31,30 +41,19 @@ fn main() -> Result<()> {
                 }
             }
         };
-        let mut processes = get_process_info(&mut user_cache)?;
-        clear_screen();
-        display_timestamp();
-        display_processes_sorted(&mut processes, &maybe_sort_by)?;
-        if refresh_count % 100 == 0 {
-            user_cache = UsersCache::new();
-            refresh_count = 0;
-        } else {
-            refresh_count += 1;
+        if last_refresh.elapsed() >= Duration::from_secs(1) {
+            let mut processes = get_process_info(&mut user_cache)?;
+            clear_screen();
+            display_timestamp();
+            display_processes_sorted(&mut processes, &maybe_sort_by)?;
+            if refresh_count % 100 == 0 {
+                user_cache = UsersCache::new();
+                refresh_count = 0;
+            } else {
+                refresh_count += 1;
+            }
+            last_refresh = Instant::now();
         }
-        thread::sleep(Duration::from_secs(2));
     }
     Ok(())
-}
-
-mod test {
-    use super::*;
-    use anyhow::Result;
-
-    #[test]
-    pub fn test_display_processes() -> Result<()> {
-        let mut user_cache = UsersCache::new();
-        let processes = get_process_info(&mut user_cache)?;
-        display_processes(processes)?;
-        Ok(())
-    }
 }
