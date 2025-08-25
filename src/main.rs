@@ -2,8 +2,9 @@ use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result};
 use crossterm::{
+    ExecutableCommand,
     event::{self, Event, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use model::SortBy;
 use output::{clear_screen, display_processes_sorted, display_timestamp};
@@ -17,7 +18,9 @@ mod processes;
 
 fn main() -> Result<()> {
     enable_raw_mode().context("Failed to enable raw mode")?;
+    std::io::stdout().execute(EnterAlternateScreen)?;
     show_processes()?;
+    std::io::stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode().context("Failed to disable raw mode")
 }
 
