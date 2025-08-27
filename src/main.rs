@@ -19,9 +19,10 @@ mod processes;
 fn main() -> Result<()> {
     enable_raw_mode().context("Failed to enable raw mode")?;
     std::io::stdout().execute(EnterAlternateScreen)?;
-    show_processes()?;
+    let result = show_processes();
     std::io::stdout().execute(LeaveAlternateScreen)?;
-    disable_raw_mode().context("Failed to disable raw mode")
+    disable_raw_mode().context("Failed to disable raw mode")?;
+    result
 }
 
 fn show_processes() -> Result<()> {

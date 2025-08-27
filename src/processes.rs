@@ -26,8 +26,10 @@ pub fn get_process_info(user_cache: &mut UsersCache) -> Result<Vec<ProcessInfo>>
     let mut process_info_vec = Vec::new();
 
     for pid in get_pids()? {
-        let process_info = parse_process(pid, user_cache)?;
-        process_info_vec.push(process_info);
+        match parse_process(pid, user_cache) {
+            Ok(process) => process_info_vec.push(process),
+            Err(_) => continue,
+        }
     }
 
     Ok(process_info_vec)
@@ -85,7 +87,7 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
     let cpu_time_total = utime + stime;
     let virtual_memory_kb = vsize / 1024;
 
-    // Still need to calculate CPU percentage (requires sampling over time)
+    // TODO need to calculate CPU percentage (requires sampling over time)
     let cpu_percent = 0.0;
 
     Ok(ProcessInfo {
