@@ -1,3 +1,4 @@
+use crossterm::event::KeyCode;
 use ratatui::widgets::TableState;
 use users::UsersCache;
 
@@ -21,7 +22,7 @@ impl App {
             user_cache: UsersCache::new(),
             refresh_count: 0,
             last_refresh: Instant::now(),
-            table_state: TableState::default(),
+            tablejjjjjjj_state: TableState::default(),
             should_quit: false,
         }
     }
@@ -33,9 +34,37 @@ impl App {
             KeyCode::Char('m') | KeyCode::Char('M') => self.sort_by = Some(SortBy::Memory),
             KeyCode::Char('p') | KeyCode::Char('P') => self.sort_by = Some(SortBy::Pid),
             KeyCode::Char('n') | KeyCode::Char('N') => self.sort_by = Some(SortBy::Name),
-            KeyCode::Up => self.previous_process(),
-            KeyCode::Down => self.next_process(),
+            KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => self.previous_process(),
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
             _ => {}
         }
+    }
+
+    fn next_process(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                if i >= self.processes.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
+    }
+
+    fn previous_process(&mut self) {
+        let i = match self.table_state.selected() {
+            Some(i) => {
+                if i <= 0 {
+                    self.processes.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.table_state.select(Some(i));
     }
 }
