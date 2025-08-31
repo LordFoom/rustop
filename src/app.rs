@@ -1,8 +1,12 @@
+use chrono::Duration;
 use crossterm::event::KeyCode;
 use ratatui::widgets::TableState;
 use users::UsersCache;
 
-use crate::model::{ProcessInfo, SortBy};
+use crate::{
+    model::{ProcessInfo, SortBy},
+    processes::get_process_info,
+};
 
 pub struct App {
     processes: Vec<ProcessInfo>,
@@ -66,5 +70,11 @@ impl App {
             None => 0,
         };
         self.table_state.select(Some(i));
+    }
+
+    fn update_processes(&mut self) -> Result<()> {
+        if self.last_refresh.elapsed() >= Duration::from_secs(seconds) {
+            self.processes = get_process_info(&mut self.user_cache)?;
+        }
     }
 }
