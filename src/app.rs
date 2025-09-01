@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use chrono::Duration;
 use crossterm::event::KeyCode;
 use ratatui::widgets::TableState;
@@ -86,12 +88,13 @@ impl App {
                 Some(SortBy::Name) => self.processes.sort_by(|a, b| a.name.partial_cmp(&b.name)),
                 None => {}
             }
-        }
-        if (self.refresh_count % 100 = 0) {
-            self.user_cache = UsersCache::new();
-            self.refresh_count = 0;
-        } else {
-            self.refresh_count += 1;
+            if (self.refresh_count % 100 = 0) {
+                self.user_cache = UsersCache::new();
+                self.refresh_count = 0;
+            } else {
+                self.refresh_count += 1;
+            }
+            self.last_refresh = Instant::now();
         }
 
         Ok(())
