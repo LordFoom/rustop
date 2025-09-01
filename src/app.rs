@@ -73,8 +73,27 @@ impl App {
     }
 
     fn update_processes(&mut self) -> Result<()> {
-        if self.last_refresh.elapsed() >= Duration::from_secs(seconds) {
+        if self.last_refresh.elapsed() >= Duration::from_secs(1) {
             self.processes = get_process_info(&mut self.user_cache)?;
+            match self.sort_by {
+                Some(SortBy::Cpu) => self
+                    .processes
+                    .sort_by(|a, b| a.cpu_percent.partial_cmp(&b.cpu_percent)),
+                Some(SortBy::Memory) => self
+                    .processes
+                    .sort_by(|a, b| a.memory_kb.partial_cmp(&b.memory_kb)),
+                Some(SortBy::Pid) => self.processes.sort_by(|a, b| a.pid.partial_cmp(&b.pid)),
+                Some(SortBy::Name) => self.processes.sort_by(|a, b| a.name.partial_cmp(&b.name)),
+                None => {}
+            }
         }
+        if (self.refresh_count % 100 = 0) {
+            self.user_cache = UsersCache::new();
+            self.refresh_count = 0;
+        } else {
+            self.refresh_count += 1;
+        }
+
+        Ok(())
     }
 }
