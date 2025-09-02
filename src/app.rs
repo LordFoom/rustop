@@ -1,5 +1,6 @@
-use std::time::Instant;
+use std::{cmp::Ordering, time::Instant};
 
+use anyhow::Result;
 use chrono::Duration;
 use crossterm::event::KeyCode;
 use ratatui::widgets::TableState;
@@ -21,19 +22,19 @@ pub struct App {
 }
 
 impl App {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             processes: Vec::new(),
             sort_by: None,
             user_cache: UsersCache::new(),
             refresh_count: 0,
             last_refresh: Instant::now(),
-            tablejjjjjjj_state: TableState::default(),
+            table_state: TableState::default(),
             should_quit: false,
         }
     }
 
-    fn handle_key(&mut self, key: KeyCode) {
+    pub fn handle_key(&mut self, key: KeyCode) {
         match key {
             KeyCode::Char('q') | KeyCode::Esc => self.should_quit = true,
             KeyCode::Char('c') | KeyCode::Char('C') => self.sort_by = Some(SortBy::Cpu),
@@ -46,7 +47,7 @@ impl App {
         }
     }
 
-    fn next_process(&mut self) {
+    pub fn next_process(&mut self) {
         let i = match self.table_state.selected() {
             Some(i) => {
                 if i >= self.processes.len() - 1 {
@@ -60,7 +61,7 @@ impl App {
         self.table_state.select(Some(i));
     }
 
-    fn previous_process(&mut self) {
+    pub fn previous_process(&mut self) {
         let i = match self.table_state.selected() {
             Some(i) => {
                 if i <= 0 {
@@ -74,21 +75,29 @@ impl App {
         self.table_state.select(Some(i));
     }
 
-    fn update_processes(&mut self) -> Result<()> {
-        if self.last_refresh.elapsed() >= Duration::from_secs(1) {
+    pub fn update_processes(&mut self) -> Result<()> {
+        if self.last_refresh.elapsed().as_secs() >= 1 {
             self.processes = get_process_info(&mut self.user_cache)?;
             match self.sort_by {
-                Some(SortBy::Cpu) => self
+                Some(SortBy::Cpu) => self.processes.sort_by(|a, b| {
+                    a.cpu_percent
+                        .partial_cmp(&b.cpu_percent)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                }),
+                Some(SortBy::Memory) => self.processes.sort_by(|a, b| {
+                    a.memory_kb
+                        .partial_cmp(&b.memory_kb)
+                        .unwrap_or(Ordering::Equal)
+                }),
+                Some(SortBy::Pid) => self
                     .processes
-                    .sort_by(|a, b| a.cpu_percent.partial_cmp(&b.cpu_percent)),
-                Some(SortBy::Memory) => self
+                    .sort_by(|a, b| a.pid.partial_cmp(&b.pid).unwrap_or(Ordering::Equal)),
+                Some(SortBy::Name) => self
                     .processes
-                    .sort_by(|a, b| a.memory_kb.partial_cmp(&b.memory_kb)),
-                Some(SortBy::Pid) => self.processes.sort_by(|a, b| a.pid.partial_cmp(&b.pid)),
-                Some(SortBy::Name) => self.processes.sort_by(|a, b| a.name.partial_cmp(&b.name)),
+                    .sort_by(|a, b| a.name.partial_cmp(&b.name).unwrap_or(Ordering::Equal)),
                 None => {}
             }
-            if (self.refresh_count % 100 = 0) {
+            if self.refresh_count % 100 == 0 {
                 self.user_cache = UsersCache::new();
                 self.refresh_count = 0;
             } else {
