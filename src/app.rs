@@ -12,13 +12,13 @@ use crate::{
 };
 
 pub struct App {
-    processes: Vec<ProcessInfo>,
-    sort_by: Option<SortBy>,
-    user_cache: UsersCache,
-    refresh_count: u8,
-    last_refresh: Instant,
-    table_state: TableState,
-    should_quit: bool,
+    pub processes: Vec<ProcessInfo>,
+    pub sort_by: Option<SortBy>,
+    pub user_cache: UsersCache,
+    pub refresh_count: u8,
+    pub last_refresh: Instant,
+    pub table_state: TableState,
+    pub should_quit: bool,
 }
 
 impl App {

@@ -7,14 +7,13 @@ use anyhow::{Context, Result};
 use crossterm::{
     ExecutableCommand,
     event::{self, Event, KeyCode},
-    terminal::{
-        self, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
-    },
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use model::SortBy;
 use output::{clear_screen, display_processes_sorted, display_timestamp};
 use processes::get_process_info;
 use ratatui::{Terminal, prelude::CrosstermBackend};
+use tui::run_tui;
 use users::UsersCache;
 
 mod app;
@@ -22,6 +21,7 @@ mod app_args;
 mod model;
 mod output;
 mod processes;
+mod tui;
 
 fn main() -> Result<()> {
     run()
@@ -30,9 +30,9 @@ fn main() -> Result<()> {
 fn run() -> Result<()> {
     enable_raw_mode().context("Failed to enable raw mode")?;
     std::io::stdout().execute(EnterAlternateScreen)?;
-    let result = show_processes();
     let backend = CrosstermBackend::new(stdout());
-    let mut terminal = Terminal::new(backend);
+    let mut terminal = Terminal::new(backend)?;
+    let result = run_tui(&mut terminal);
     std::io::stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode().context("Failed to disable raw mode")?;
     result
