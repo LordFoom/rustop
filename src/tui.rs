@@ -1,7 +1,12 @@
 use std::time::Duration;
 
 use crossterm::event::{self, Event};
-use ratatui::{Frame, Terminal, prelude::Backend, style::Color, widgets::Row};
+use ratatui::{
+    Frame, Terminal,
+    prelude::Backend,
+    style::{Color, Style},
+    widgets::Row,
+};
 
 use crate::app::App;
 use anyhow::Result;
