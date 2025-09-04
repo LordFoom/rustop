@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crossterm::event::{self, Event};
-use ratatui::{Frame, Terminal, prelude::Backend};
+use ratatui::{Frame, Terminal, prelude::Backend, style::Color, widgets::Row};
 
 use crate::app::App;
 use anyhow::Result;
@@ -23,4 +23,10 @@ pub fn run_tui<B: Backend>(terminal: &mut Terminal<B>) -> Result<()> {
     Ok(())
 }
 
-pub fn ui(f: &mut Frame, app: &mut App) {}
+pub fn ui(f: &mut Frame, app: &mut App) {
+    let size = f.size();
+
+    let header = Row::new(vec!["PID", "USER", "NAME", "CPU%", "MEM(KB)", "STATE"])
+        .style(Style::default().fg(Color::Yellow))
+        .height(1);
+}
