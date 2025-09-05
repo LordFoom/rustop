@@ -34,4 +34,15 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     let header = Row::new(vec!["PID", "USER", "NAME", "CPU%", "MEM(KB)", "STATE"])
         .style(Style::default().fg(Color::Yellow))
         .height(1);
+
+    let rows = app.processes.iter().map(|process| {
+        Row::new(vec![
+            process.pid.to_string(),
+            process.user.clone(),
+            process.name.clone(),
+            format!("{:1}", process.cpu_percent),
+            process.memory_kb.to_string(),
+            format!("{:?}", process.state),
+        ])
+    });
 }
