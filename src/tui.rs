@@ -3,9 +3,10 @@ use std::time::Duration;
 use crossterm::event::{self, Event};
 use ratatui::{
     Frame, Terminal,
+    layout::Constraint,
     prelude::Backend,
     style::{Color, Style},
-    widgets::Row,
+    widgets::{Row, Table},
 };
 
 use crate::app::App;
@@ -34,15 +35,28 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     let header = Row::new(vec!["PID", "USER", "NAME", "CPU%", "MEM(KB)", "STATE"])
         .style(Style::default().fg(Color::Yellow))
         .height(1);
+    let widths = vec![
+        Constraint::Percentage(16),
+        Constraint::Percentage(16),
+        Constraint::Percentage(16),
+        Constraint::Percentage(16),
+        Constraint::Percentage(16),
+        Constraint::Percentage(16),
+    ];
 
-    let rows = app.processes.iter().map(|process| {
-        Row::new(vec![
-            process.pid.to_string(),
-            process.user.clone(),
-            process.name.clone(),
-            format!("{:1}", process.cpu_percent),
-            process.memory_kb.to_string(),
-            format!("{:?}", process.state),
-        ])
-    });
+    let rows = app
+        .processes
+        .iter()
+        .map(|process| {
+            Row::new(vec![
+                process.pid.to_string(),
+                process.user.clone(),
+                process.name.clone(),
+                format!("{:1}", process.cpu_percent),
+                process.memory_kb.to_string(),
+                format!("{:?}", process.state),
+            ])
+        })
+        .collect::<Vec<Row>>();
+    let table = Table::new(rows, widths);
 }
