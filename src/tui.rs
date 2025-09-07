@@ -3,10 +3,10 @@ use std::time::Duration;
 use crossterm::event::{self, Event};
 use ratatui::{
     Frame, Terminal,
-    layout::Constraint,
+    layout::{Constraint, Direction, Layout},
     prelude::Backend,
     style::{Color, Style},
-    widgets::{Row, Table},
+    widgets::{Block, Borders, Paragraph, Row, Table},
 };
 
 use crate::app::App;
@@ -58,5 +58,18 @@ pub fn ui(f: &mut Frame, app: &mut App) {
             ])
         })
         .collect::<Vec<Row>>();
-    let table = Table::new(rows, widths);
+    let table = Table::new(rows, widths)
+        .row_highlight_style(Color::Cyan)
+        .highlight_symbol(">>");
+
+    let menu = Paragraph::new("[Q]uit | [C]pu | [M]em | [P]ID | [N]ame")
+        .block(Block::default().borders(Borders::ALL).title("Menu"));
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Min(5), Constraint::Length(3)])
+        .split(size);
+
+    f.render_stateful_widget(table, chunks[0], &mut app.table_state);
+    f.render_widget(menu, chunks[1]);
 }
