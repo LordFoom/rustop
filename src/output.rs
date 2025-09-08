@@ -15,7 +15,7 @@ pub fn display_timestamp() {
 //Display the process info brought in
 pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
     print!(
-        "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {} {:>8} {}\r\n",
+        "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {} {:>8} {:>8<}{}\r\n",
         "PID", "PPID", "USER", "NICE", "CPU%", "STATE", "MEM", "VMEM", "TTY", "THREADS", "COMMAND"
     );
     println!("{}", "-".repeat(100));
