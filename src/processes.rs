@@ -127,7 +127,7 @@ fn get_terminal_name(tty_nr: u64) -> String {
             } else if minor <= 63 {
                 format!("tty{}", minor)
             } else {
-                format!("tty{}", minor)
+                format!("tty{}", major)
             }
         }
         5 => {
@@ -158,9 +158,9 @@ fn get_process_user(pid: u64, user_cache: &mut UsersCache) -> Option<String> {
     let uid = meta_data.uid();
     //this works out het boks
     if let Some(user) = user_cache.get_user_by_uid(uid) {
-        return Some(user.name().to_string_lossy().to_string());
+        Some(user.name().to_string_lossy().to_string())
     } else {
-        return Some(format!("uid:{uid}"));
+        Some(format!("uid:{uid}"))
     }
 }
 
