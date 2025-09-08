@@ -138,7 +138,7 @@ impl ProcessInfo {
         self.command
             .split_whitespace()
             .next()
-            .and_then(|cmd| cmd.split('/').last())
+            .and_then(|cmd| cmd.split('/').next_back())
             .unwrap_or(&self.name)
     }
 }
