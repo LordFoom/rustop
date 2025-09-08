@@ -1,7 +1,6 @@
 use std::{cmp::Ordering, time::Instant};
 
 use anyhow::Result;
-use chrono::Duration;
 use crossterm::event::KeyCode;
 use ratatui::widgets::TableState;
 use users::UsersCache;
@@ -19,6 +18,8 @@ pub struct App {
     pub last_refresh: Instant,
     pub table_state: TableState,
     pub should_quit: bool,
+    ///This will place the selection at the top when sorting changes
+    pub should_go_to_top: bool,
 }
 
 impl App {
@@ -29,22 +30,42 @@ impl App {
             user_cache: UsersCache::new(),
             refresh_count: 0,
             last_refresh: Instant::now(),
-            table_state: TableState::default(),
+            table_state: {
+                let mut state = TableState::default();
+                state.select(Some(0));
+                state
+            },
             should_quit: false,
+            should_go_to_top: false,
         }
+    }
+
+    pub fn select(&mut self, i: usize) {
+        let idx = if i >= self.processes.len() {
+            self.processes.len()
+        } else {
+            i
+        };
+        self.table_state.select(Some(idx));
     }
 
     pub fn handle_key(&mut self, key: KeyCode) {
         match key {
             KeyCode::Char('q') | KeyCode::Esc => self.should_quit = true,
-            KeyCode::Char('c') | KeyCode::Char('C') => self.sort_by = Some(SortBy::Cpu),
-            KeyCode::Char('m') | KeyCode::Char('M') => self.sort_by = Some(SortBy::Memory),
-            KeyCode::Char('p') | KeyCode::Char('P') => self.sort_by = Some(SortBy::Pid),
-            KeyCode::Char('n') | KeyCode::Char('N') => self.sort_by = Some(SortBy::Name),
-            KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
-            KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => self.previous_process(),
+            KeyCode::Char('c') | KeyCode::Char('C') => self.handle_sort(SortBy::Cpu),
+            KeyCode::Char('m') | KeyCode::Char('M') => self.handle_sort(SortBy::Memory),
+            KeyCode::Char('p') | KeyCode::Char('P') => self.handle_sort(SortBy::Pid),
+            KeyCode::Char('n') | KeyCode::Char('N') => self.handle_sort(SortBy::Name),
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => self.previous_process(),
             _ => {}
         }
+    }
+
+    ///Set the sort by
+    fn handle_sort(&mut self, sort: SortBy) {
+        self.sort_by = Some(sort);
+        self.should_go_to_top = true;
     }
 
     pub fn next_process(&mut self) {
@@ -104,6 +125,10 @@ impl App {
                 self.refresh_count += 1;
             }
             self.last_refresh = Instant::now();
+            if self.should_go_to_top {
+                self.select(0);
+                self.should_go_to_top = false;
+            }
         }
 
         Ok(())
