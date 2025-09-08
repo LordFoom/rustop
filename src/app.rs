@@ -41,8 +41,8 @@ impl App {
             KeyCode::Char('m') | KeyCode::Char('M') => self.sort_by = Some(SortBy::Memory),
             KeyCode::Char('p') | KeyCode::Char('P') => self.sort_by = Some(SortBy::Pid),
             KeyCode::Char('n') | KeyCode::Char('N') => self.sort_by = Some(SortBy::Name),
-            KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => self.previous_process(),
-            KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
+            KeyCode::Up | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
+            KeyCode::Down | KeyCode::Char('k') | KeyCode::Char('K') => self.previous_process(),
             _ => {}
         }
     }
@@ -64,7 +64,7 @@ impl App {
     pub fn previous_process(&mut self) {
         let i = match self.table_state.selected() {
             Some(i) => {
-                if i <= 0 {
+                if i == 0 {
                     self.processes.len() - 1
                 } else {
                     i - 1
