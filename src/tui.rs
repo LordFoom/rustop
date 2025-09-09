@@ -59,6 +59,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         })
         .collect::<Vec<Row>>();
     let table = Table::new(rows, widths)
+        .header(header)
         .row_highlight_style(Color::Cyan)
         .highlight_symbol(">>");
 
