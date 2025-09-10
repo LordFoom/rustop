@@ -5,8 +5,8 @@ use ratatui::{
     Frame, Terminal,
     layout::{Constraint, Direction, Layout},
     prelude::Backend,
-    style::{Color, Style},
-    widgets::{Block, Borders, Paragraph, Row, Table},
+    style::{Color, Style, Styled},
+    widgets::{Block, BorderType, Borders, Paragraph, Row, Table},
 };
 
 use crate::app::App;
@@ -30,7 +30,7 @@ pub fn run_tui<B: Backend>(terminal: &mut Terminal<B>) -> Result<()> {
 }
 
 pub fn ui(f: &mut Frame, app: &mut App) {
-    let size = f.size();
+    let size = f.area();
 
     let header = Row::new(vec!["PID", "USER", "NAME", "CPU%", "MEM(KB)", "STATE"])
         .style(Style::default().fg(Color::Yellow))
@@ -56,15 +56,23 @@ pub fn ui(f: &mut Frame, app: &mut App) {
                 process.memory_kb.to_string(),
                 format!("{:?}", process.state),
             ])
+            .style(Style::default().fg(Color::LightCyan))
         })
         .collect::<Vec<Row>>();
     let table = Table::new(rows, widths)
         .header(header)
+        .block(
+            Block::default()
+                .borders(Borders::all())
+                .border_type(BorderType::Double),
+        )
+        .style(Style::default().fg(Color::Yellow))
         .row_highlight_style(Color::Cyan)
         .highlight_symbol(">>");
 
     let menu = Paragraph::new("[Q]uit | [C]pu | [M]em | [P]ID | [N]ame")
-        .block(Block::default().borders(Borders::ALL).title("Menu"));
+        .block(Block::default().borders(Borders::ALL).title("Menu"))
+        .style(Style::default().fg(Color::Yellow));
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
