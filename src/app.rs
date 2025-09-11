@@ -97,7 +97,7 @@ impl App {
     }
 
     pub fn update_processes(&mut self) -> Result<()> {
-        if self.last_refresh.elapsed().as_secs() >= 1 {
+        if self.last_refresh.elapsed().as_millis() >= 250 {
             self.processes = get_process_info(&mut self.user_cache)?;
             match self.sort_by {
                 Some(SortBy::Cpu) => self.processes.sort_by(|a, b| {
