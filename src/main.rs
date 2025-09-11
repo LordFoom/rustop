@@ -15,6 +15,7 @@ mod output;
 mod processes;
 mod tui;
 
+//TODO sort by name
 fn main() -> Result<()> {
     run()
 }

@@ -13,6 +13,7 @@ use crate::{
 pub struct App {
     pub processes: Vec<ProcessInfo>,
     pub sort_by: Option<SortBy>,
+    pub reverse_sort: bool,
     pub user_cache: UsersCache,
     pub refresh_count: u8,
     pub last_refresh: Instant,
@@ -27,6 +28,7 @@ impl App {
         Self {
             processes: Vec::new(),
             sort_by: None,
+            reverse_sort: false,
             user_cache: UsersCache::new(),
             refresh_count: 0,
             last_refresh: Instant::now(),
@@ -64,8 +66,14 @@ impl App {
 
     ///Set the sort by
     fn handle_sort(&mut self, sort: SortBy) {
-        self.sort_by = Some(sort);
-        self.should_go_to_top = true;
+        let curr_sort = self.sort_by.clone().unwrap_or(SortBy::Cpu);
+        if curr_sort == sort {
+            self.reverse_sort = !self.reverse_sort;
+        } else {
+            self.sort_by = Some(sort);
+            self.should_go_to_top = true;
+            self.reverse_sort = false;
+        }
     }
 
     pub fn next_process(&mut self) {
@@ -118,6 +126,10 @@ impl App {
                     .sort_by(|a, b| a.name.partial_cmp(&b.name).unwrap_or(Ordering::Equal)),
                 None => {}
             }
+            if self.reverse_sort {
+                self.processes.reverse();
+            }
+
             if self.refresh_count % 100 == 0 {
                 self.user_cache = UsersCache::new();
                 self.refresh_count = 0;
