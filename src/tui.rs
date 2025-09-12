@@ -9,7 +9,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph, Row, Table},
 };
 
-use crate::app::App;
+use crate::{app::App, output::format_memory};
 use anyhow::Result;
 
 pub fn run_tui<B: Backend>(terminal: &mut Terminal<B>) -> Result<()> {
@@ -53,7 +53,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
                 process.user.clone(),
                 process.name.clone(),
                 format!("{:1}", process.cpu_percent),
-                process.memory_kb.to_string(),
+                format_memory(process.memory_kb),
                 format!("{:?}", process.state),
             ])
             .style(Style::default().fg(Color::LightCyan))

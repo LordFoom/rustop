@@ -3,16 +3,17 @@ use std::cmp::Ordering;
 use anyhow::Result;
 
 use crate::model::{ProcessInfo, SortBy};
-
 pub fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
 }
 
 ///Utility method to display timestamp
+#[allow(dead_code)]
 pub fn display_timestamp() {
     println!("rustop - {}", chrono::Local::now().format("%H::%M::%S"));
 }
 //Display the process info brought in
+#[allow(dead_code)]
 pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
     print!(
         "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {} {:>8} {:>8}\r\n",
@@ -68,7 +69,7 @@ pub fn display_processes_sorted(
 }
 
 /// Helper function to format memory in human-readable format
-fn format_memory(kb: u64) -> String {
+pub fn format_memory(kb: u64) -> String {
     if kb == 0 {
         return "0".to_string();
     }
