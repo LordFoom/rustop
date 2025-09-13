@@ -32,16 +32,19 @@ pub fn run_tui<B: Backend>(terminal: &mut Terminal<B>) -> Result<()> {
 pub fn ui(f: &mut Frame, app: &mut App) {
     let size = f.area();
 
-    let header = Row::new(vec!["PID", "USER", "NAME", "CPU%", "MEM(KB)", "STATE"])
-        .style(Style::default().fg(Color::Yellow))
-        .height(1);
+    let header = Row::new(vec![
+        "PID", "USER", "NAME", "CPU%", "MEM(KB)", "STATE", "COMMAND",
+    ])
+    .style(Style::default().fg(Color::Yellow))
+    .height(1);
     let widths = vec![
-        Constraint::Percentage(16),
-        Constraint::Percentage(16),
-        Constraint::Percentage(16),
-        Constraint::Percentage(16),
-        Constraint::Percentage(16),
-        Constraint::Percentage(16),
+        Constraint::Percentage(14),
+        Constraint::Percentage(14),
+        Constraint::Percentage(14),
+        Constraint::Percentage(14),
+        Constraint::Percentage(14),
+        Constraint::Percentage(14),
+        Constraint::Percentage(14),
     ];
 
     let rows = app
@@ -55,6 +58,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
                 format!("{:1}", process.cpu_percent),
                 format_memory(process.memory_kb),
                 format!("{:?}", process.state),
+                process.command.clone(),
             ])
             .style(Style::default().fg(Color::LightCyan))
         })
@@ -70,7 +74,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         .row_highlight_style(Color::Cyan)
         .highlight_symbol(">>");
 
-    let menu = Paragraph::new("[Q]uit | [C]pu | [M]em | [P]ID | [N]ame")
+    let menu = Paragraph::new("[Q]uit | [C]pu | [M]em | [P]ID | [N]ame | co[M]mand")
         .block(Block::default().borders(Borders::ALL).title("Menu"))
         .style(Style::default().fg(Color::Yellow));
 

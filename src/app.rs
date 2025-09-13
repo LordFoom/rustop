@@ -58,6 +58,7 @@ impl App {
             KeyCode::Char('m') | KeyCode::Char('M') => self.handle_sort(SortBy::Memory),
             KeyCode::Char('p') | KeyCode::Char('P') => self.handle_sort(SortBy::Pid),
             KeyCode::Char('n') | KeyCode::Char('N') => self.handle_sort(SortBy::Name),
+            KeyCode::Char('m') | KeyCode::Char('M') => self.handle_sort(SortBy::Command),
             KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
             KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => self.previous_process(),
             _ => {}
@@ -124,6 +125,9 @@ impl App {
                 Some(SortBy::Name) => self
                     .processes
                     .sort_by(|a, b| a.name.partial_cmp(&b.name).unwrap_or(Ordering::Equal)),
+                Some(SortBy::Command) => self
+                    .processes
+                    .sort_by(|a, b| a.command.partial_cmp(&b.command).unwrap_or(Ordering::Equal)),
                 None => {}
             }
             if self.reverse_sort {

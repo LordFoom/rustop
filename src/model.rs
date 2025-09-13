@@ -191,4 +191,5 @@ pub enum SortBy {
     Memory,
     Pid,
     Name,
+    Command,
 }

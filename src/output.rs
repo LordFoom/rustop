@@ -63,6 +63,10 @@ pub fn display_processes_sorted(
             SortBy::Name => {
                 processes.sort_by(|a, b| b.name.partial_cmp(&a.name).unwrap_or(Ordering::Equal));
             }
+            SortBy::Command => {
+                processes
+                    .sort_by(|a, b| b.command.partial_cmp(&a.command).unwrap_or(Ordering::Equal));
+            }
         }
     }
     display_processes(processes)
