@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 ///Possible states of a process
 #[derive(Debug, Clone, PartialEq)]
 pub enum ProcessState {
@@ -74,6 +76,12 @@ pub struct ProcessInfo {
     pub name: String,
     pub command: String,
     pub cpu_percent: f64,
+    ///how much cpu time has been used
+    pub cpu_time_total: u64,
+    ///previous cpu time measurement
+    pub last_cpu_time: Option<u64>,
+    ///When, if we did, did we last measure the cpu time
+    pub last_measurement: Option<Instant>,
     pub memory_kb: u64,
     pub start_time: u64,
     pub state: ProcessState,
@@ -84,7 +92,6 @@ pub struct ProcessInfo {
     pub nice: i64,              // Nice value (-20 to 19)
     pub num_threads: u64,       // Number of threads
     pub virtual_memory_kb: u64, // Virtual memory size
-    pub cpu_time_total: u64,    // Total CPU time used (utime + stime)
     pub session_id: u64,        // Session ID
     pub terminal: String,       // Controlling terminal (e.g., "pts/0", "tty1")
 }
@@ -97,6 +104,9 @@ impl ProcessInfo {
             name: String::new(),
             command: String::new(),
             cpu_percent: 0.0,
+            cpu_time_total: 0,
+            last_cpu_time: None,
+            last_measurement: None,
             memory_kb: 0,
             start_time: 0,
             state: ProcessState::Unknown('?'),
@@ -105,7 +115,6 @@ impl ProcessInfo {
             nice: 0,
             num_threads: 0,
             virtual_memory_kb: 0,
-            cpu_time_total: 0,
             session_id: 0,
             terminal: String::new(),
         }
@@ -141,6 +150,8 @@ impl ProcessInfo {
             .and_then(|cmd| cmd.split('/').next_back())
             .unwrap_or(&self.name)
     }
+
+    pub fn update_cpu_percent(&mut self) {}
 }
 
 impl Default for ProcessInfo {
