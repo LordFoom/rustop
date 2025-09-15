@@ -38,13 +38,13 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     .style(Style::default().fg(Color::Yellow))
     .height(1);
     let widths = vec![
+        Constraint::Percentage(10),
+        Constraint::Percentage(10),
+        Constraint::Percentage(14),
+        Constraint::Percentage(10),
         Constraint::Percentage(14),
         Constraint::Percentage(14),
-        Constraint::Percentage(14),
-        Constraint::Percentage(14),
-        Constraint::Percentage(14),
-        Constraint::Percentage(14),
-        Constraint::Percentage(14),
+        Constraint::Percentage(26),
     ];
 
     let rows = app
