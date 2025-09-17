@@ -1,8 +1,13 @@
+use std::sync::OnceLock;
+
 use crate::model::ProcessInfo;
 use crate::model::ProcessState;
 use anyhow::Result;
 use anyhow::anyhow;
+use nix::unistd::{SysconfVar, sysconf};
 use users::{Users, UsersCache};
+
+static CLOCK_TICKS_PER_SEC: OnceLock<f64> = OnceLock::new();
 
 // static USER_CACHE: LazyLock<UsersCache> = LazyLock::new(|| UsersCache::new());
 
@@ -179,4 +184,18 @@ pub fn get_command_line(pid: &str) -> Result<String> {
     let cmd = std::fs::read_to_string(format!("/proc/{pid}/cmdline"))?;
 
     Ok(cmd)
+}
+
+pub fn get_clock_ticks() -> f64 {
+    *CLOCK_TICKS_PER_SEC.get_or_init(|| match sysconf(SysconfVar::CLK_TCK) {
+        Ok(Some(ticks)) => ticks as f64,
+        Ok(None) => {
+            eprintln!("Warning CLK_TCK is unlimited, defaulting to 100.0");
+            100.0
+        }
+        Err(e) => {
+            eprintln!("Warning: failed to get CLK_TCK({}), defaulting to 100.0", e);
+            100.0
+        }
+    })
 }
