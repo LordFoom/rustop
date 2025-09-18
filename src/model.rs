@@ -1,5 +1,7 @@
 use std::time::Instant;
 
+use crate::processes::get_clock_ticks;
+
 ///Possible states of a process
 #[derive(Debug, Clone, PartialEq)]
 pub enum ProcessState {
@@ -157,7 +159,18 @@ impl ProcessInfo {
         if let (Some(last_cpu), Some(last_time)) = (self.last_cpu_time, self.last_measurement) {
             let time_delta = current_time.duration_since(last_time).as_secs_f64();
             let cpu_delta = current_cpu_time.saturating_sub(last_cpu) as f64;
+
+            let clock_ticks_per_second = get_clock_ticks();
+            let cpu_seconds_used = cpu_delta / clock_ticks_per_second;
+
+            if time_delta > 0.0 {
+                self.cpu_percent = (cpu_seconds_used / time_delta) * 100.0;
+                self.cpu_percent = self.cpu_percent.min(100.0);
+            }
         }
+
+        self.last_cpu_time = Some(current_cpu_time);
+        self.last_measurement = Some(current_time);
     }
 }
 

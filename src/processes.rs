@@ -94,6 +94,8 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
 
     // TODO need to calculate CPU percentage (requires sampling over time)
     let cpu_percent = 0.0;
+    let last_cpu_time = None;
+    let last_measurement = None;
 
     Ok(ProcessInfo {
         pid: file_pid,
@@ -112,6 +114,8 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
         cpu_time_total,
         session_id,
         terminal,
+        last_cpu_time,
+        last_measurement,
     })
 }
 
