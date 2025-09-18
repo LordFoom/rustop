@@ -58,7 +58,7 @@ impl App {
             KeyCode::Char('m') | KeyCode::Char('M') => self.handle_sort(SortBy::Memory),
             KeyCode::Char('p') | KeyCode::Char('P') => self.handle_sort(SortBy::Pid),
             KeyCode::Char('n') | KeyCode::Char('N') => self.handle_sort(SortBy::Name),
-            KeyCode::Char('m') | KeyCode::Char('M') => self.handle_sort(SortBy::Command),
+            KeyCode::Char('o') | KeyCode::Char('O') => self.handle_sort(SortBy::Command),
             KeyCode::Down | KeyCode::Char('j') | KeyCode::Char('J') => self.next_process(),
             KeyCode::Up | KeyCode::Char('k') | KeyCode::Char('K') => self.previous_process(),
             _ => {}
