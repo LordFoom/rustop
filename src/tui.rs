@@ -74,7 +74,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         .row_highlight_style(Color::Cyan)
         .highlight_symbol(">>");
 
-    let menu = Paragraph::new("[Q]uit | [C]pu | [M]em | [P]ID | [N]ame | co[M]mand")
+    let menu = Paragraph::new("[Q]uit | [C]pu | [M]em | [P]ID | [N]ame | c[O]mmand")
         .block(Block::default().borders(Borders::ALL).title("Menu"))
         .style(Style::default().fg(Color::Yellow));
 
