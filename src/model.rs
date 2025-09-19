@@ -152,26 +152,6 @@ impl ProcessInfo {
             .and_then(|cmd| cmd.split('/').next_back())
             .unwrap_or(&self.name)
     }
-
-    pub fn update_cpu_percent(&mut self) {
-        let current_time = Instant::now();
-        let current_cpu_time = self.cpu_time_total;
-        if let (Some(last_cpu), Some(last_time)) = (self.last_cpu_time, self.last_measurement) {
-            let time_delta = current_time.duration_since(last_time).as_secs_f64();
-            let cpu_delta = current_cpu_time.saturating_sub(last_cpu) as f64;
-
-            let clock_ticks_per_second = get_clock_ticks();
-            let cpu_seconds_used = cpu_delta / clock_ticks_per_second;
-
-            if time_delta > 0.0 {
-                self.cpu_percent = (cpu_seconds_used / time_delta) * 100.0;
-                self.cpu_percent = self.cpu_percent.min(100.0);
-            }
-        }
-
-        self.last_cpu_time = Some(current_cpu_time);
-        self.last_measurement = Some(current_time);
-    }
 }
 
 impl Default for ProcessInfo {

@@ -7,7 +7,7 @@ use users::UsersCache;
 
 use crate::{
     model::{ProcessInfo, SortBy},
-    processes::get_process_info,
+    processes::{get_process_info, update_cpu_percent},
 };
 
 pub struct App {
@@ -107,7 +107,17 @@ impl App {
 
     pub fn update_processes(&mut self) -> Result<()> {
         if self.last_refresh.elapsed().as_millis() >= 250 {
-            self.processes = get_process_info(&mut self.user_cache)?;
+            let mut new_processes = get_process_info(&mut self.user_cache)?;
+
+            for new_process in &mut new_processes {
+                if let Some(process) = self.processes.iter().find(|f| f.pid == new_process.pid) {
+                    new_process.last_cpu_time = process.last_cpu_time;
+                    new_process.last_measurement = process.last_measurement;
+                }
+                update_cpu_percent(new_process);
+            }
+
+            self.processes = new_processes;
             match self.sort_by {
                 Some(SortBy::Cpu) => self.processes.sort_by(|a, b| {
                     a.cpu_percent

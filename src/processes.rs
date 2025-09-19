@@ -1,4 +1,5 @@
 use std::sync::OnceLock;
+use std::time::Instant;
 
 use crate::model::ProcessInfo;
 use crate::model::ProcessState;
@@ -92,7 +93,6 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
     let cpu_time_total = utime + stime;
     let virtual_memory_kb = vsize / 1024;
 
-    // TODO need to calculate CPU percentage (requires sampling over time)
     let cpu_percent = 0.0;
     let last_cpu_time = None;
     let last_measurement = None;
@@ -188,6 +188,27 @@ pub fn get_command_line(pid: &str) -> Result<String> {
     let cmd = std::fs::read_to_string(format!("/proc/{pid}/cmdline"))?;
 
     Ok(cmd)
+}
+
+pub fn update_cpu_percent(proc_info: &mut ProcessInfo) {
+    let current_time = Instant::now();
+    let current_cpu_time = proc_info.cpu_time_total;
+    if let (Some(last_cpu), Some(last_time)) = (proc_info.last_cpu_time, proc_info.last_measurement)
+    {
+        let time_delta = current_time.duration_since(last_time).as_secs_f64();
+        let cpu_delta = current_cpu_time.saturating_sub(last_cpu) as f64;
+
+        let clock_ticks_per_second = get_clock_ticks();
+        let cpu_seconds_used = cpu_delta / clock_ticks_per_second;
+
+        if time_delta > 0.0 {
+            proc_info.cpu_percent = (cpu_seconds_used / time_delta) * 100.0;
+            proc_info.cpu_percent = proc_info.cpu_percent.min(100.0);
+        }
+    }
+
+    proc_info.last_cpu_time = Some(current_cpu_time);
+    proc_info.last_measurement = Some(current_time);
 }
 
 pub fn get_clock_ticks() -> f64 {
