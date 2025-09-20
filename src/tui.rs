@@ -5,7 +5,7 @@ use ratatui::{
     Frame, Terminal,
     layout::{Constraint, Direction, Layout},
     prelude::Backend,
-    style::{Color, Style, Styled},
+    style::{Color, Style},
     widgets::{Block, BorderType, Borders, Paragraph, Row, Table},
 };
 

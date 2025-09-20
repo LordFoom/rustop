@@ -1,7 +1,5 @@
 use std::time::Instant;
 
-use crate::processes::get_clock_ticks;
-
 ///Possible states of a process
 #[derive(Debug, Clone, PartialEq)]
 pub enum ProcessState {
@@ -53,6 +51,7 @@ impl ProcessState {
         }
     }
 
+    #[allow(dead_code)]
     pub fn description(&self) -> &'static str {
         match self {
             ProcessState::Running => "Running",
@@ -72,6 +71,7 @@ impl ProcessState {
 ///
 ///Struct to hold information about processes
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ProcessInfo {
     pub pid: u64,
     pub ppid: u64,
@@ -98,6 +98,7 @@ pub struct ProcessInfo {
     pub terminal: String,       // Controlling terminal (e.g., "pts/0", "tty1")
 }
 
+#[allow(dead_code)]
 impl ProcessInfo {
     pub fn new() -> Self {
         ProcessInfo {
@@ -140,6 +141,7 @@ impl ProcessInfo {
     }
 
     /// Check if process is a kernel thread (usually indicated by brackets)
+    #[allow(dead_code)]
     pub fn is_kernel_thread(&self) -> bool {
         self.name.starts_with('[') && self.name.ends_with(']')
     }

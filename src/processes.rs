@@ -81,7 +81,7 @@ pub fn parse_process(pid: u64, user_cache: &mut UsersCache) -> Result<ProcessInf
     let num_threads = stat_parts[17].parse::<u64>().unwrap_or(0);
     let start_time = stat_parts[19].parse::<u64>().unwrap_or(0);
     let vsize = stat_parts[20].parse::<u64>().unwrap_or(0);
-    let rss = stat_parts[21].parse::<u64>().unwrap_or(0);
+    let _rss = stat_parts[21].parse::<u64>().unwrap_or(0);
 
     // Get additional info
     let command = get_command_line(&pid.to_string()).unwrap_or_else(|_| name.to_string());

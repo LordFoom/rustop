@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use anyhow::Result;
 
 use crate::model::{ProcessInfo, SortBy};
+#[allow(dead_code)]
 pub fn clear_screen() {
     print!("\x1B[2J\x1B[1;1H");
 }
@@ -16,7 +17,7 @@ pub fn display_timestamp() {
 #[allow(dead_code)]
 pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
     print!(
-        "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {} {:>8} {:>8}\r\n",
+        "{:>8} {:>8} {:>8} {:>8} {:>6} {:>4} {:>8} {:>8} {:>8} {:>8} {:>8}\r\n",
         "PID", "PPID", "USER", "NICE", "CPU%", "STATE", "MEM", "VMEM", "TTY", "THREADS", "COMMAND"
     );
     println!("{}", "-".repeat(100));
@@ -41,6 +42,7 @@ pub fn display_processes(processes: &[ProcessInfo]) -> Result<()> {
 }
 
 /// If optional SortBy is supplied, sort processes appropriately
+#[allow(dead_code)]
 pub fn display_processes_sorted(
     processes: &mut [ProcessInfo],
     maybe_sort_by: &Option<SortBy>,
